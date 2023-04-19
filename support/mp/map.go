@@ -313,21 +313,16 @@ func HasAny(array map[any]any, keys []any) bool {
 }
 
 // IsAssoc Determines if an array is associative.
-// todo: finish & test cases
-//func IsAssoc(array map[any]any) bool {
-//	for i, key := range getSortedKeys(array) {
-//		if i != key {
-//			return true
-//		}
-//	}
-//	return false
-//}
+func IsAssoc[T any](arr T) bool {
+	k := reflect.ValueOf(arr).Kind()
+	return k == reflect.Map
+}
 
 // IsList Determines if an array is a list.
-// todo: finish & test cases
-//func IsList(array map[any]any) bool {
-//	return !IsAssoc(array)
-//}
+func IsList[T any](arr T) bool {
+	k := reflect.ValueOf(arr).Kind()
+	return k == reflect.Slice || k == reflect.Array
+}
 
 // Join concatenates elements of a slice into a string with a specified delimiter and final separator
 // todo: finish & test cases
@@ -473,24 +468,24 @@ func isMapStringInterface(v interface{}) bool {
 }
 
 // Shuffle the given array and return the result.
-// todo: finish & test cases
-//func Shuffle[T any](arr []T, seed *int64) []T {
-//}
+func Shuffle[T any](arr []T, seed *int64) ([]T, error) {
+	return nil, ErrNoImplementation
+}
 
 // Sort the nested array using the given callback.
-// todo: finish & test cases
-//func Sort(arr []any, fn func(i, j int) bool) []any {
-//}
+func Sort(arr []any, fn func(i, j int) bool) ([]any, error) {
+	return nil, ErrNoImplementation
+}
 
-// Sort the nested array in descending order using the given callback.
-// todo: finish & test cases
-//func SortDesc(arr []any, fn func(i, j int) bool) []any {
-//}
+// SortDesc Sort the nested array in descending order using the given callback.
+func SortDesc(arr []any, fn func(i, j int) bool) ([]any, error) {
+	return nil, ErrNoImplementation
+}
 
 // SortRecursive Recursively sort an array by values.
-// todo: finish & test cases
-//func SortRecursive(arr []any, descending bool) ([]any, error) {
-//}
+func SortRecursive(arr []any, descending bool) ([]any, error) {
+	return nil, ErrNoImplementation
+}
 
 // ToCssClasses Convert a map of string-bool pairs to a string of CSS classes.
 func ToCssClasses(mp map[string]bool) string {
