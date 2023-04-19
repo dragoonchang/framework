@@ -6,21 +6,21 @@ import (
 )
 
 func TestAccessible(t *testing.T) {
-	assert.True(t, Accessible([]interface{}{}))
-	assert.True(t, Accessible([]interface{}{1, 2}))
-	assert.True(t, Accessible([5]interface{}{1, 2, 3, 4, 5}))
-	assert.True(t, Accessible(map[int]interface{}{1: "a", 2: "b"}))
-	assert.True(t, Accessible(map[string]interface{}{"a": 1, "b": 2}))
+	assert.True(t, Accessible([]any{}))
+	assert.True(t, Accessible([]any{1, 2}))
+	assert.True(t, Accessible([5]any{1, 2, 3, 4, 5}))
+	assert.True(t, Accessible(map[int]any{1: "a", 2: "b"}))
+	assert.True(t, Accessible(map[string]any{"a": 1, "b": 2}))
 
 	assert.False(t, Accessible("abc"))
 	assert.False(t, Accessible(new(struct{})))
 }
 
 func TestAdd(t *testing.T) {
-	array := map[string]interface{}{
+	array := map[string]any{
 		"name": "Desk",
 	}
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"name":  "Desk",
 		"price": 100,
 	}
@@ -28,74 +28,74 @@ func TestAdd(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 
-	expected = map[string]interface{}{
+	expected = map[string]any{
 		"surname": "Mövsümov",
 	}
-	result, err = Add(map[string]interface{}{}, "surname", "Mövsümov")
+	result, err = Add(map[string]any{}, "surname", "Mövsümov")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 
-	expected = map[string]interface{}{
-		"developer": map[string]interface{}{
+	expected = map[string]any{
+		"developer": map[string]any{
 			"name": "Ferid",
 		},
 	}
-	result, err = Add(map[string]interface{}{}, "developer.name", "Ferid")
+	result, err = Add(map[string]any{}, "developer.name", "Ferid")
 	assert.NoError(t, err)
 
 	assert.Equal(t, expected, result)
 
-	expected = map[string]interface{}{
+	expected = map[string]any{
 		"1": "hAz",
 	}
-	result, err = Add(map[string]interface{}{}, "1", "hAz")
+	result, err = Add(map[string]any{}, "1", "hAz")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 
-	expected = map[string]interface{}{
-		"1": map[string]interface{}{
+	expected = map[string]any{
+		"1": map[string]any{
 			"1": "hAz",
 		},
 	}
-	result, err = Add(map[string]interface{}{}, "1.1", "hAz")
+	result, err = Add(map[string]any{}, "1.1", "hAz")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 }
 
 func TestCollapse(t *testing.T) {
-	array := map[string]interface{}{
+	array := map[string]any{
 		"key1": "value1",
 		"key2": "value2",
 		"key3": "value3",
 	}
-	expected := []interface{}{"value1", "value2", "value3"}
+	expected := []any{"value1", "value2", "value3"}
 	result := Collapse(array)
 	assert.ElementsMatch(t, expected, result)
 
-	array = map[string]interface{}{
-		"outer1": map[string]interface{}{
+	array = map[string]any{
+		"outer1": map[string]any{
 			"key1": "value1",
 			"key2": "value2",
 		},
-		"outer2": map[string]interface{}{
+		"outer2": map[string]any{
 			"key3": "value3",
 		},
 	}
-	expected = []interface{}{"value1", "value2", "value3"}
+	expected = []any{"value1", "value2", "value3"}
 	result = Collapse(array)
 	assert.ElementsMatch(t, expected, result)
 
-	input := map[string]interface{}{
-		"outer": map[string]interface{}{
-			"inner1": map[string]interface{}{
+	input := map[string]any{
+		"outer": map[string]any{
+			"inner1": map[string]any{
 				"key1": "value1",
 				"key2": "value2",
 			},
-			"inner2": map[string]interface{}{
+			"inner2": map[string]any{
 				"key3": "value3",
 				"key4": "value4",
 			},
-			"inner3": map[string]map[string]interface{}{
+			"inner3": map[string]map[string]any{
 				"nested": {
 					"key5": "value5",
 					"key6": "value6",
@@ -105,7 +105,40 @@ func TestCollapse(t *testing.T) {
 		"outer2": "value7",
 	}
 
-	expected = []interface{}{"value1", "value2", "value3", "value4", "value5", "value6", "value7"}
+	expected = []any{"value1", "value2", "value3", "value4", "value5", "value6", "value7"}
+	result = Collapse(input)
+	assert.ElementsMatch(t, expected, result)
+
+	input = map[string]any{
+		"outer": map[string]any{
+			"inner1": map[string]any{
+				"key1": "value1",
+				"key2": "value2",
+			},
+			"inner2": []any{"value3", "value4"},
+		},
+		"outer2": "value5",
+	}
+
+	expected = []any{"value1", "value2", "value3", "value4", "value5"}
+	result = Collapse(input)
+	assert.ElementsMatch(t, expected, result)
+
+	input = map[string]any{
+		"outer": []any{
+			map[string]any{
+				"key1": "value1",
+				"key2": "value2",
+			},
+			"value3",
+			"value4",
+		},
+		"outer2": map[string]any{
+			"inner1": []any{"value5", "value6"},
+		},
+	}
+
+	expected = []any{"value1", "value2", "value3", "value4", "value5", "value6"}
 	result = Collapse(input)
 	assert.ElementsMatch(t, expected, result)
 }
@@ -141,20 +174,20 @@ func TestForget(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	array := map[string]interface{}{
-		"products.desk": map[string]interface{}{
+	array := map[string]any{
+		"products.desk": map[string]any{
 			"price": 100,
 		},
 	}
-	expected := map[string]interface{}{"price": 100}
+	expected := map[string]any{"price": 100}
 	value, err := Get(array, "products.desk")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, value)
 
 	// Test null array values
-	array = map[string]interface{}{
+	array = map[string]any{
 		"foo": nil,
-		"bar": map[string]interface{}{
+		"bar": map[string]any{
 			"baz": nil,
 		},
 	}
@@ -167,7 +200,7 @@ func TestGet(t *testing.T) {
 	assert.Nil(t, value)
 
 	// Test null key returns the whole array
-	array = map[string]interface{}{
+	array = map[string]any{
 		"foo": "bar",
 	}
 	value, err = Get(array, "")
@@ -187,20 +220,20 @@ func TestGet(t *testing.T) {
 	assert.Equal(t, expectedStr, value)
 
 	// Test array is empty and key is null
-	value, err = Get(map[string]interface{}{}, "")
+	value, err = Get(map[string]any{}, "")
 	assert.NoError(t, err)
 	assert.Empty(t, value)
 
-	value, err = Get(map[string]interface{}{}, "", "default")
+	value, err = Get(map[string]any{}, "", "default")
 	expectedStr = "default"
 	assert.NoError(t, err)
 	assert.Equal(t, expectedStr, value)
 
 	// Test numeric keys
-	array = map[string]interface{}{
-		"products": map[string]interface{}{
-			"0": map[string]interface{}{"name": "desk"},
-			"1": map[string]interface{}{"name": "chair"},
+	array = map[string]any{
+		"products": map[string]any{
+			"0": map[string]any{"name": "desk"},
+			"1": map[string]any{"name": "chair"},
 		},
 	}
 	expectedStr = "desk"
@@ -214,8 +247,8 @@ func TestGet(t *testing.T) {
 	assert.Equal(t, expectedStr, value)
 
 	// Test return default value for non-existing key.
-	array = map[string]interface{}{
-		"names": map[string]interface{}{
+	array = map[string]any{
+		"names": map[string]any{
 			"developer": "taylor",
 		},
 	}
@@ -274,16 +307,16 @@ func TestRandom(t *testing.T) {
 
 func TestSet(t *testing.T) {
 	// dot notation
-	array := map[string]interface{}{
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+	array := map[string]any{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 100,
 			},
 		},
 	}
-	expected := map[string]interface{}{
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+	expected := map[string]any{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 200,
 			},
 		},
@@ -293,25 +326,25 @@ func TestSet(t *testing.T) {
 	assert.Equal(t, expected, array)
 
 	// No key is given
-	array = map[string]interface{}{
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+	array = map[string]any{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 100,
 			},
 		},
 	}
-	expected = map[string]interface{}{"price": 300}
-	err = Set(&array, "", map[string]interface{}{"price": 300})
+	expected = map[string]any{"price": 300}
+	err = Set(&array, "", map[string]any{"price": 300})
 	assert.NoError(t, err)
 	assert.Equal(t, expected, array)
 
 	// The key doesn't exist at the depth
-	array = map[string]interface{}{
+	array = map[string]any{
 		"products": "desk",
 	}
-	expected = map[string]interface{}{
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+	expected = map[string]any{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 200,
 			},
 		},
@@ -321,13 +354,13 @@ func TestSet(t *testing.T) {
 	assert.Equal(t, expected, array)
 
 	// No corresponding key exists
-	array = map[string]interface{}{
+	array = map[string]any{
 		"": "products",
 	}
-	expected = map[string]interface{}{
+	expected = map[string]any{
 		"": "products",
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 200,
 			},
 		},
@@ -336,16 +369,16 @@ func TestSet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, array)
 
-	array = map[string]interface{}{
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+	array = map[string]any{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 100,
 			},
 		},
 	}
-	expected = map[string]interface{}{
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+	expected = map[string]any{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 100,
 			},
 		},
@@ -355,20 +388,20 @@ func TestSet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, array)
 
-	array = map[string]interface{}{
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+	array = map[string]any{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 100,
 			},
 		},
 	}
-	expected = map[string]interface{}{
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+	expected = map[string]any{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 100,
 			},
 		},
-		"table": map[string]interface{}{
+		"table": map[string]any{
 			"price": 350,
 		},
 	}
@@ -376,10 +409,10 @@ func TestSet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, array)
 
-	array = map[string]interface{}{}
-	expected = map[string]interface{}{
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+	array = map[string]any{}
+	expected = map[string]any{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 200,
 			},
 		},
@@ -389,12 +422,12 @@ func TestSet(t *testing.T) {
 	assert.Equal(t, expected, array)
 
 	// Override
-	array = map[string]interface{}{
+	array = map[string]any{
 		"products": "table",
 	}
-	expected = map[string]interface{}{
-		"products": map[string]interface{}{
-			"desk": map[string]interface{}{
+	expected = map[string]any{
+		"products": map[string]any{
+			"desk": map[string]any{
 				"price": 300,
 			},
 		}}
@@ -402,10 +435,10 @@ func TestSet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, array)
 
-	array = map[string]interface{}{
+	array = map[string]any{
 		"1": "test",
 	}
-	expected = map[string]interface{}{
+	expected = map[string]any{
 		"1": "hAz",
 	}
 	err = Set(&array, "1", "hAz")

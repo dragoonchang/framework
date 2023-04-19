@@ -29,16 +29,35 @@ func Add(arr map[string]any, key string, value any) (map[string]any, error) {
 }
 
 // Collapse collapses an array of arrays into a single array.
-func Collapse(array any) []interface{} {
+func Collapse(arr map[string]any) []any {
+	if len(arr) == 0 {
+		return []any{}
+	}
 	res := make([]any, 0)
 
-	recursiveCollapse(array, &res)
+	recursiveCollapse(arr, &res)
 	return res
 }
 
 func recursiveCollapse(value any, res *[]any) {
 	switch v := value.(type) {
+	case [][]interface{}:
+		for _, vv := range v {
+			recursiveCollapse(vv, res)
+		}
+	case []map[string]interface{}:
+		for _, vv := range v {
+			recursiveCollapse(vv, res)
+		}
+	case []interface{}:
+		for _, vv := range v {
+			recursiveCollapse(vv, res)
+		}
 	case map[string]map[string]interface{}:
+		for _, vv := range v {
+			recursiveCollapse(vv, res)
+		}
+	case map[string][]interface{}:
 		for _, vv := range v {
 			recursiveCollapse(vv, res)
 		}
