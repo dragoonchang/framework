@@ -63,6 +63,51 @@ func TestAdd(t *testing.T) {
 }
 
 func TestCollapse(t *testing.T) {
+	array := map[string]interface{}{
+		"key1": "value1",
+		"key2": "value2",
+		"key3": "value3",
+	}
+	expected := []interface{}{"value1", "value2", "value3"}
+	result := Collapse(array)
+	assert.ElementsMatch(t, expected, result)
+
+	array = map[string]interface{}{
+		"outer1": map[string]interface{}{
+			"key1": "value1",
+			"key2": "value2",
+		},
+		"outer2": map[string]interface{}{
+			"key3": "value3",
+		},
+	}
+	expected = []interface{}{"value1", "value2", "value3"}
+	result = Collapse(array)
+	assert.ElementsMatch(t, expected, result)
+
+	input := map[string]interface{}{
+		"outer": map[string]interface{}{
+			"inner1": map[string]interface{}{
+				"key1": "value1",
+				"key2": "value2",
+			},
+			"inner2": map[string]interface{}{
+				"key3": "value3",
+				"key4": "value4",
+			},
+			"inner3": map[string]map[string]interface{}{
+				"nested": {
+					"key5": "value5",
+					"key6": "value6",
+				},
+			},
+		},
+		"outer2": "value7",
+	}
+
+	expected = []interface{}{"value1", "value2", "value3", "value4", "value5", "value6", "value7"}
+	result = Collapse(input)
+	assert.ElementsMatch(t, expected, result)
 }
 
 func TestCrossJoin(t *testing.T) {
@@ -380,24 +425,32 @@ func TestSortDesc(t *testing.T) {
 func TestSortRecursive(t *testing.T) {
 }
 
-// todo: map is unordered, so this test will fail.
 func TestToCssClasses(t *testing.T) {
-	//classes := ToCssClasses(map[interface{}]bool{"font-bold": true, "mt-4": true, "ml-2": true, "mr-2": false})
-	//expected := "font-bold mt-4 ml-2"
-	//assert.Equal(t, expected, classes)
+	array := map[string]bool{
+		"font-bold": true,
+		"mt-4":      true,
+		"ml-2":      true,
+		"mr-2":      false,
+	}
+	result := ToCssClasses(array)
+	expected := [...]string{"font-bold", "mt-4", "ml-2"}
+	for _, v := range expected {
+		assert.Contains(t, result, v)
+	}
 }
 
-// todo: map is unordered, so this test will fail.
 func TestToCssStyles(t *testing.T) {
-	//styles := ToCssStyles(map[string]bool{
-	//	"font-weight: bold;": true,
-	//	"margin-top: 4px;":   true,
-	//	"margin-left: 2px;":  true,
-	//	"margin-right: 2px":  false,
-	//})
-	//
-	//expected := "font-weight: bold; margin-top: 4px; margin-left: 2px;"
-	//assert.Equal(t, expected, styles)
+	array := map[string]bool{
+		"font-weight: bold;": true,
+		"margin-top: 4px;":   true,
+		"margin-left: 2px;":  true,
+		"margin-right: 2px":  false,
+	}
+	result := ToCssStyles(array)
+	expected := [...]string{"font-weight: bold;", "margin-top: 4px;", "margin-left: 2px;"}
+	for _, v := range expected {
+		assert.Contains(t, result, v)
+	}
 }
 
 func TestWhere(t *testing.T) {

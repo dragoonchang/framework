@@ -14,7 +14,6 @@ func Accessible[T any](value T) bool {
 }
 
 // Add an element to an array using “dot” notation if it doesn't exist.
-// todo: check & test cases
 func Add(arr map[string]any, key string, value any) (map[string]any, error) {
 	if len(key) == 0 {
 		return nil, ErrInvalidKey
@@ -30,18 +29,26 @@ func Add(arr map[string]any, key string, value any) (map[string]any, error) {
 }
 
 // Collapse collapses an array of arrays into a single array.
-// todo: check & test cases
-func Collapse(input []any) []any {
-	results := make([]any, 0)
+func Collapse(array any) []interface{} {
+	res := make([]any, 0)
 
-	for _, values := range input {
-		switch v := values.(type) {
-		case []any:
-			results = append(results, v...)
+	recursiveCollapse(array, &res)
+	return res
+}
+
+func recursiveCollapse(value any, res *[]any) {
+	switch v := value.(type) {
+	case map[string]map[string]interface{}:
+		for _, vv := range v {
+			recursiveCollapse(vv, res)
 		}
+	case map[string]interface{}:
+		for _, vv := range v {
+			recursiveCollapse(vv, res)
+		}
+	default:
+		*res = append(*res, v)
 	}
-
-	return results
 }
 
 // CrossJoin returns all possible permutations of the given arrays.
@@ -486,13 +493,12 @@ func isMapStringInterface(v interface{}) bool {
 //}
 
 // ToCssClasses Convert a map of string-bool pairs to a string of CSS classes.
-// todo: check & test cases
-func ToCssClasses(mp map[any]bool) string {
+func ToCssClasses(mp map[string]bool) string {
 	var classList []string
 
-	for k, v := range mp {
+	for i, v := range mp {
 		if v {
-			classList = append(classList, fmt.Sprint(k))
+			classList = append(classList, i)
 		}
 	}
 
@@ -500,14 +506,12 @@ func ToCssClasses(mp map[any]bool) string {
 }
 
 // ToCssStyles Convert a map of string-bool pairs to a string of CSS styles.
-// todo: check & test cases
-func ToCssStyles[T comparable](mp map[T]bool) string {
-	//func ToCssStyles(mp map[any]bool) string {
+func ToCssStyles(mp map[string]bool) string {
 	var styleStrings []string
 
-	for k, v := range mp {
+	for i, v := range mp {
 		if v {
-			styleStrings = append(styleStrings, fmt.Sprint(k))
+			styleStrings = append(styleStrings, i)
 		}
 	}
 
