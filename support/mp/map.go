@@ -19,11 +19,11 @@ func Add(arr map[string]any, key string, value any) (map[string]any, error) {
 	if len(key) == 0 {
 		return nil, ErrInvalidKey
 	}
-	val, err := Get(arr, key)
+	v, err := Get(arr, key, nil)
 	if err != nil {
 		return nil, err
 	}
-	if val == nil {
+	if v == nil {
 		Set(&arr, key, value)
 	}
 	return arr, nil
@@ -217,10 +217,20 @@ func Forget(array map[any]any, keys []any) {
 }
 
 // Get an item from a map using "dot" notation.
-// todo: check & test cases
 func Get(array map[string]any, key string, def ...any) (any, error) {
+	if len(def) > 1 {
+		return nil, ErrInvalidParam
+	}
+
+	if array == nil || len(array) == 0 {
+		if len(def) == 0 {
+			return nil, nil
+		}
+		return def[0], nil
+	}
+
 	if len(key) == 0 {
-		return nil, ErrInvalidKey
+		return array, nil
 	}
 
 	if value, exists := array[key]; exists {
@@ -228,7 +238,7 @@ func Get(array map[string]any, key string, def ...any) (any, error) {
 	}
 
 	if !strings.Contains(key, ".") {
-		return def, nil
+		return def[0], nil
 	}
 
 	m := array
@@ -236,12 +246,16 @@ func Get(array map[string]any, key string, def ...any) (any, error) {
 	for _, v := range keys {
 		value, exists := m[v]
 		if !exists {
-			return def, nil
+			return def[0], nil
+		}
+
+		if value == nil {
+			return nil, nil
 		}
 
 		subArray, ok := value.(map[string]any)
 		if !ok {
-			return def, nil
+			return value, nil
 		}
 
 		m = subArray
