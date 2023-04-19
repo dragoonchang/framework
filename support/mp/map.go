@@ -8,32 +8,25 @@ import (
 )
 
 // Accessible Determine whether the given value is array accessible.
-// todo: check & test cases
-func Accessible(input any) bool {
-	value := reflect.ValueOf(input)
-
-	switch value.Kind() {
-	case reflect.Map:
-		return true
-	case reflect.Struct:
-		for i := 0; i < value.NumField(); i++ {
-			field := value.Type().Field(i)
-			if field.PkgPath == "" {
-				return true
-			}
-		}
-	}
-
-	return false
+func Accessible[T any](value T) bool {
+	k := reflect.ValueOf(value).Kind()
+	return k == reflect.Map || k == reflect.Slice || k == reflect.Array
 }
 
 // Add an element to an array using “dot” notation if it doesn't exist.
 // todo: check & test cases
-func Add(input map[any]any, key any, value any) map[any]any {
-	if Get(input, key) == nil {
-		Set(input, key, value)
+func Add(arr map[string]any, key string, value any) (map[string]any, error) {
+	if len(key) == 0 {
+		return nil, ErrInvalidKey
 	}
-	return input
+	val, err := Get(arr, key)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		Set(&arr, key, value)
+	}
+	return arr, nil
 }
 
 // Collapse collapses an array of arrays into a single array.
@@ -115,14 +108,14 @@ func Dot(array map[any]any, prepend string) map[string]any {
 
 // Undot returns an expanded array from flattened dot notation array
 // todo: check & test cases
-func Undot(array map[string]any) map[any]any {
-	results := make(map[any]any)
+func Undot(array map[string]any) map[string]any {
+	res := make(map[string]any)
 
 	for key, value := range array {
-		Set(results, key, value)
+		Set(&res, key, value)
 	}
 
-	return results
+	return res
 }
 
 // Except returns all the given array except for a specified array of keys.
@@ -223,38 +216,38 @@ func Forget(array map[any]any, keys []any) {
 	}
 }
 
-// Get an item from an array using int key.
+// Get an item from a map using "dot" notation.
 // todo: check & test cases
-func Get(array map[any]any, key any, defaultValue ...any) any {
-	if key == nil {
-		return array
+func Get(array map[string]any, key string, def ...any) (any, error) {
+	if len(key) == 0 {
+		return nil, ErrInvalidKey
 	}
 
 	if value, exists := array[key]; exists {
-		return value
+		return value, nil
 	}
 
-	keyStr, ok := key.(string)
-	if !ok || !strings.Contains(keyStr, ".") {
-		return defaultValue
+	if !strings.Contains(key, ".") {
+		return def, nil
 	}
 
-	segments := strings.Split(keyStr, ".")
-	for _, segment := range segments {
-		value, exists := array[segment]
+	m := array
+	keys := strings.Split(key, ".")
+	for _, v := range keys {
+		value, exists := m[v]
 		if !exists {
-			return defaultValue
+			return def, nil
 		}
 
-		subArray, ok := value.(map[any]any)
+		subArray, ok := value.(map[string]any)
 		if !ok {
-			return defaultValue
+			return def, nil
 		}
 
-		array = subArray
+		m = subArray
 	}
 
-	return array
+	return m, nil
 }
 
 // Has checks if an item or items exist in an array using "dot" notation.
@@ -417,36 +410,45 @@ func Query(arr map[string]string) string {
 //func Random[T any](arr []T, number *int) ([]T, error) {
 //}
 
-// Set an map item to a given value using int key
-// todo: check & test cases
-func Set(array map[any]any, key any, value any) map[any]any {
-	if key == nil {
-		return map[any]any{
-			nil: value,
+// Set a map item to a given value using int key
+func Set(dict *map[string]any, key string, value any) error {
+	if len(key) == 0 {
+		if isMapStringInterface(value) {
+			*dict = value.(map[string]any)
+			return nil
 		}
+
+		return ErrInvalidValue
 	}
 
-	keys := strings.Split(fmt.Sprintf("%v", key), ".")
-	current := array
+	keys := strings.Split(key, ".")
+	m := *dict
 
-	for i, key := range keys {
+	for i, v := range keys {
 		if i == len(keys)-1 {
-			current[key] = value
+			m[v] = value
 		} else {
-			if _, exists := current[key]; !exists {
-				current[key] = make(map[any]any)
+			if !isMapStringInterface(m[v]) {
+				m[v] = make(map[string]any)
+			} else if _, exists := m[v]; !exists {
+				m[v] = make(map[string]any)
 			}
 
-			subArray, ok := current[key].(map[any]any)
+			subArray, ok := m[v].(map[string]any)
 			if !ok {
-				return array
+				return nil
 			}
 
-			current = subArray
+			m = subArray
 		}
 	}
 
-	return array
+	return nil
+}
+
+func isMapStringInterface(v interface{}) bool {
+	rv := reflect.ValueOf(v)
+	return rv.Kind() == reflect.Map && rv.Type().Key().Kind() == reflect.String
 }
 
 // Shuffle the given array and return the result.
